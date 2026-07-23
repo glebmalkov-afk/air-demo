@@ -32,7 +32,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -181,6 +184,20 @@ class PetControllerTests {
 
 	@Nested
 	class ProcessUpdateFormHasErrors {
+
+		@Test
+		void processUpdateFormWithDuplicateName() throws Exception {
+			mockMvc
+				.perform(post("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, TEST_PET_ID)
+					.param("name", "doggy")
+					.param("type", "hamster")
+					.param("birthDate", "2015-02-12"))
+				.andExpect(status().isOk())
+				.andExpect(model().attributeHasFieldErrorCode("pet", "name", "duplicate"))
+				.andExpect(view().name("pets/createOrUpdatePetForm"));
+
+			verify(owners, never()).save(any());
+		}
 
 		@Test
 		void processUpdateFormWithInvalidBirthDate() throws Exception {
