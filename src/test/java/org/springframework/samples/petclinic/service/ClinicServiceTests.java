@@ -28,6 +28,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.samples.petclinic.owner.Owner;
 import org.springframework.samples.petclinic.owner.OwnerRepository;
@@ -210,6 +211,39 @@ class ClinicServiceTests {
 		assertThat(vet.getNrOfSpecialties()).isEqualTo(2);
 		assertThat(vet.getSpecialties().get(0).getName()).isEqualTo("dentistry");
 		assertThat(vet.getSpecialties().get(1).getName()).isEqualTo("surgery");
+	}
+
+	@Test
+	void shouldFindSpecialtyNamesPresentInTheData() {
+		assertThat(this.vets.findSpecialtyNames()).containsExactly("dentistry", "radiology", "surgery");
+	}
+
+	@Test
+	void shouldFindVetsBySpecialty() {
+		Page<Vet> surgeons = this.vets.findBySpecialty("surgery", Pageable.ofSize(5));
+
+		assertThat(surgeons.getTotalElements()).isEqualTo(2);
+		assertThat(surgeons.getContent()).extracting(Vet::getLastName).containsExactly("Douglas", "Ortega");
+	}
+
+	@Test
+	void shouldFindVetsBySpecialtyIgnoringCase() {
+		assertThat(this.vets.findBySpecialty("SuRgErY", Pageable.ofSize(5)).getTotalElements()).isEqualTo(2);
+	}
+
+	@Test
+	void shouldPageVetsFilteredBySpecialty() {
+		Page<Vet> firstPage = this.vets.findBySpecialty("surgery", PageRequest.of(0, 1));
+		Page<Vet> secondPage = this.vets.findBySpecialty("surgery", PageRequest.of(1, 1));
+
+		assertThat(firstPage.getTotalPages()).isEqualTo(2);
+		assertThat(firstPage.getContent()).extracting(Vet::getLastName).containsExactly("Douglas");
+		assertThat(secondPage.getContent()).extracting(Vet::getLastName).containsExactly("Ortega");
+	}
+
+	@Test
+	void shouldFindNoVetsForAnUnknownSpecialty() {
+		assertThat(this.vets.findBySpecialty("astrology", Pageable.ofSize(5)).getTotalElements()).isZero();
 	}
 
 	@Test

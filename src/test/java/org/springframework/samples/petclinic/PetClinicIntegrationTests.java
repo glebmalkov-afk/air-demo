@@ -63,6 +63,20 @@ public class PetClinicIntegrationTests {
 		assertThat(result.getStatusCode()).isEqualTo(HttpStatus.OK);
 	}
 
+	@Test
+	void vetListFiltersBySpecialty() {
+		RestTemplate template = builder.rootUri("http://localhost:" + port).build();
+
+		ResponseEntity<String> all = template.exchange(RequestEntity.get("/vets.html").build(), String.class);
+		assertThat(all.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(all.getBody()).contains("Carter", "Leary", "Douglas", "Ortega", "Stevens");
+
+		ResponseEntity<String> surgeons = template.exchange(RequestEntity.get("/vets.html?specialty=surgery").build(),
+				String.class);
+		assertThat(surgeons.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(surgeons.getBody()).contains("Douglas", "Ortega").doesNotContain("Carter", "Stevens");
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(PetClinicApplication.class, "--spring.docker.compose.lifecycle-management=NONE");
 	}

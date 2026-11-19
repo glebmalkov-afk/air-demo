@@ -42,13 +42,28 @@ class VetController {
 	}
 
 	@GetMapping("/vets.html")
-	public String showVetList(@RequestParam(defaultValue = "1") int page, Model model) {
+	public String showVetList(@RequestParam(defaultValue = "1") int page,
+			@RequestParam(required = false) String specialty, Model model) {
 		// Here we are returning an object of type 'Vets' rather than a collection of Vet
 		// objects so it is simpler for Object-Xml mapping
+		String selectedSpecialty = normalizeSpecialty(specialty);
 		Vets vets = new Vets();
-		Page<Vet> paginated = findPaginated(page);
+		Page<Vet> paginated = findPaginated(page, selectedSpecialty);
 		vets.getVetList().addAll(paginated.toList());
+		model.addAttribute("specialties", this.vetRepository.findSpecialtyNames());
+		model.addAttribute("selectedSpecialty", selectedSpecialty == null ? "" : selectedSpecialty);
 		return addPaginationModel(page, paginated, model);
+	}
+
+	/**
+	 * Treat a missing or blank specialty request parameter as "no filter", so that the
+	 * "All" option of the filter restores the full list.
+	 */
+	private String normalizeSpecialty(String specialty) {
+		if (specialty == null || specialty.isBlank()) {
+			return null;
+		}
+		return specialty.trim();
 	}
 
 	private String addPaginationModel(int page, Page<Vet> paginated, Model model) {
@@ -60,10 +75,13 @@ class VetController {
 		return "vets/vetList";
 	}
 
-	private Page<Vet> findPaginated(int page) {
+	private Page<Vet> findPaginated(int page, String specialty) {
 		int pageSize = 5;
 		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return vetRepository.findAll(pageable);
+		if (specialty == null) {
+			return this.vetRepository.findAll(pageable);
+		}
+		return this.vetRepository.findBySpecialty(specialty, pageable);
 	}
 
 	@GetMapping({ "/vets" })
