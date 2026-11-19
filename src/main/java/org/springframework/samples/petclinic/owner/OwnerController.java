@@ -18,6 +18,7 @@ package org.springframework.samples.petclinic.owner;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,6 +50,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 class OwnerController {
 
 	private static final String VIEWS_OWNER_CREATE_OR_UPDATE_FORM = "owners/createOrUpdateOwnerForm";
+
+	/**
+	 * Search input that looks like a phone fragment: at least one digit, optionally mixed
+	 * with common phone punctuation (spaces, dashes, dots, parentheses, plus).
+	 */
+	private static final Pattern PHONE_QUERY = Pattern.compile("[\\d\\s().+-]*\\d[\\d\\s().+-]*");
 
 	private final OwnerRepository owners;
 
@@ -100,8 +107,10 @@ class OwnerController {
 			lastName = ""; // empty string signifies broadest possible search
 		}
 
-		// find owners by last name
-		Page<Owner> ownersResults = findPaginatedForOwnersLastName(page, lastName);
+		// one input: phone-like content searches by telephone, anything else by last name
+		Page<Owner> ownersResults = isPhoneQuery(lastName)
+				? findPaginatedForOwnersTelephone(page, lastName.replaceAll("\\D", ""))
+				: findPaginatedForOwnersLastName(page, lastName);
 		if (ownersResults.isEmpty()) {
 			// no owners found
 			result.rejectValue("lastName", "notFound", "not found");
@@ -128,9 +137,20 @@ class OwnerController {
 	}
 
 	private Page<Owner> findPaginatedForOwnersLastName(int page, String lastname) {
+		return owners.findByLastNameStartingWith(lastname, pageRequest(page));
+	}
+
+	private Page<Owner> findPaginatedForOwnersTelephone(int page, String telephoneDigits) {
+		return owners.findByTelephoneContaining(telephoneDigits, pageRequest(page));
+	}
+
+	private static Pageable pageRequest(int page) {
 		int pageSize = 5;
-		Pageable pageable = PageRequest.of(page - 1, pageSize);
-		return owners.findByLastNameStartingWith(lastname, pageable);
+		return PageRequest.of(page - 1, pageSize);
+	}
+
+	static boolean isPhoneQuery(String query) {
+		return PHONE_QUERY.matcher(query.trim()).matches();
 	}
 
 	@GetMapping("/owners/{ownerId}/edit")

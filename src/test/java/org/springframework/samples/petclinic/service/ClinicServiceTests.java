@@ -94,6 +94,15 @@ class ClinicServiceTests {
 	}
 
 	@Test
+	void shouldFindOwnersByTelephoneFragment() {
+		Page<Owner> owners = this.owners.findByTelephoneContaining("5551023", pageable);
+		assertThat(owners).extracting(Owner::getLastName).containsExactly("Franklin");
+
+		owners = this.owners.findByTelephoneContaining("9999999", pageable);
+		assertThat(owners).isEmpty();
+	}
+
+	@Test
 	void shouldFindSingleOwnerWithPet() {
 		Optional<Owner> optionalOwner = this.owners.findById(1);
 		assertThat(optionalOwner).isPresent();
