@@ -19,10 +19,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Repository class for <code>Vet</code> domain objects All method names are compliant
@@ -54,5 +57,28 @@ public interface VetRepository extends Repository<Vet, Integer> {
 	@Transactional(readOnly = true)
 	@Cacheable("vets")
 	Page<Vet> findAll(Pageable pageable) throws DataAccessException;
+
+	/**
+	 * Retrieve in Pages the <code>Vet</code>s that have the given specialty.
+	 * @param specialty the specialty name to filter on, matched ignoring case
+	 * @param pageable the requested page
+	 * @return a page of matching <code>Vet</code>s
+	 * @throws DataAccessException
+	 */
+	@Transactional(readOnly = true)
+	@Cacheable("vets")
+	@Query("SELECT DISTINCT v FROM Vet v JOIN v.specialties s WHERE LOWER(s.name) = LOWER(:specialty) ORDER BY v.id")
+	Page<Vet> findBySpecialty(@Param("specialty") String specialty, Pageable pageable) throws DataAccessException;
+
+	/**
+	 * Retrieve the names of every specialty held by at least one <code>Vet</code>, sorted
+	 * alphabetically.
+	 * @return the distinct specialty names present in the data
+	 * @throws DataAccessException
+	 */
+	@Transactional(readOnly = true)
+	@Cacheable(cacheNames = "vets", key = "'specialtyNames'")
+	@Query("SELECT DISTINCT s.name FROM Vet v JOIN v.specialties s ORDER BY s.name")
+	List<String> findSpecialtyNames() throws DataAccessException;
 
 }
