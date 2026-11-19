@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
@@ -153,6 +154,46 @@ class OwnerControllerTests {
 		mockMvc.perform(get("/owners?page=1").param("lastName", "Franklin"))
 			.andExpect(status().is3xxRedirection())
 			.andExpect(view().name("redirect:/owners/" + TEST_OWNER_ID));
+	}
+
+	@Test
+	void processFindFormByPartialTelephone() throws Exception {
+		Page<Owner> tasks = new PageImpl<>(List.of(george()));
+		when(this.owners.findByTelephoneContaining(eq("5551023"), any(Pageable.class))).thenReturn(tasks);
+		mockMvc.perform(get("/owners?page=1").param("lastName", "555-1023"))
+			.andExpect(status().is3xxRedirection())
+			.andExpect(view().name("redirect:/owners/" + TEST_OWNER_ID));
+	}
+
+	@Test
+	void processFindFormByTelephoneMultipleOwners() throws Exception {
+		Page<Owner> tasks = new PageImpl<>(List.of(george(), new Owner()));
+		when(this.owners.findByTelephoneContaining(eq("608"), any(Pageable.class))).thenReturn(tasks);
+		mockMvc.perform(get("/owners?page=1").param("lastName", "608"))
+			.andExpect(status().isOk())
+			.andExpect(view().name("owners/ownersList"));
+	}
+
+	@Test
+	void processFindFormByTelephoneNoOwnersFound() throws Exception {
+		when(this.owners.findByTelephoneContaining(eq("0000"), any(Pageable.class)))
+			.thenReturn(new PageImpl<>(List.of()));
+		mockMvc.perform(get("/owners?page=1").param("lastName", "0000"))
+			.andExpect(status().isOk())
+			.andExpect(model().attributeHasFieldErrorCode("owner", "lastName", "notFound"))
+			.andExpect(view().name("owners/findOwners"));
+	}
+
+	@Test
+	void phoneQueryDetection() {
+		assertThat(OwnerController.isPhoneQuery("6085551023")).isTrue();
+		assertThat(OwnerController.isPhoneQuery(" (608) 555-1023 ")).isTrue();
+		assertThat(OwnerController.isPhoneQuery("+1 608.555")).isTrue();
+		assertThat(OwnerController.isPhoneQuery("Franklin")).isFalse();
+		assertThat(OwnerController.isPhoneQuery("O'Brien")).isFalse();
+		assertThat(OwnerController.isPhoneQuery("")).isFalse();
+		assertThat(OwnerController.isPhoneQuery("- ()")).isFalse();
+		assertThat(OwnerController.isPhoneQuery("Smith2")).isFalse();
 	}
 
 	@Test
