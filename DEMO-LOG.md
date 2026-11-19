@@ -11,6 +11,6 @@ Prompts live in [`prompts/`](prompts/README.md).
 <!-- DEMO-LOG:BEGIN -->
 | Date | Prompt | PR | Review | Tests | Coverage |
 |---|---|---|---|---|---|
-| 2026-11-19 | [P01](prompts/P01-vet-specialties.md) | [#1](https://github.com/glebmalkov-afk/air-demo/pull/1) Add specialty filter to the vets list page | clean (0) | 3 added | 100% → 100% |
 | 2026-11-19 | [P02](prompts/P02-owner-phone-search.md) | [#2](https://github.com/glebmalkov-afk/air-demo/pull/2) Owner search by phone number (P02) | clean (0) | none — already covered | 100% → 100% |
+| 2026-11-19 | [P01](prompts/P01-vet-specialties.md) | [#1](https://github.com/glebmalkov-afk/air-demo/pull/1) Add specialty filter to the vets list page | clean (0) | 3 added | 100% → 100% |
 <!-- DEMO-LOG:END -->
