@@ -11,6 +11,7 @@ Prompts live in [`prompts/`](prompts/README.md).
 <!-- DEMO-LOG:BEGIN -->
 | Date | Prompt | PR | Review | Tests | Coverage |
 |---|---|---|---|---|---|
+| 2026-11-23 | — | [#5](https://github.com/glebmalkov-afk/air-demo/pull/5) Upgrade Spring Boot 4.0.3 → 4.0.10 | clean (0) | pending | — |
 | 2026-11-19 | — | [#4](https://github.com/glebmalkov-afk/air-demo/pull/4) demo/pin petclinic image | critical (1) | none — docs/config only | — |
 | 2026-11-19 | [P03](prompts/P03-pet-age.md) | [#3](https://github.com/glebmalkov-afk/air-demo/pull/3) P03: Show pet age next to birth date | concerns (1) | none — already covered | 100% → 100% |
 | 2026-11-19 | [P02](prompts/P02-owner-phone-search.md) | [#2](https://github.com/glebmalkov-afk/air-demo/pull/2) Owner search by phone number (P02) | clean (0) | none — already covered | 100% → 100% |
